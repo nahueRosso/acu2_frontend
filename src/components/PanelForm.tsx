@@ -5,6 +5,7 @@ import MaterialSelect from "@/components/MaterialSelect";
 import { fetchMateriales, type Material, type PanelInput } from "@/lib/api";
 import { frecuenciaCritica, masaSuperficial } from "@/lib/acoustics";
 import { formatInt } from "@/lib/format";
+import { formatMantisa, mejorPrefijo, PREFIJO_POR_DEFECTO, PREFIJOS } from "@/lib/prefijos";
 
 interface Props {
   onSubmit: (panel: PanelInput) => void;
@@ -15,6 +16,7 @@ interface Props {
 interface CamposTexto {
   espesor: string;
   densidad: string;
+  /** Mantisa del módulo de Young (sin el prefijo) — ver moduloYoungFactor. */
   modulo_young: string;
   poisson: string;
   factor_perdidas: string;
@@ -67,6 +69,7 @@ function validarCampo(campo: keyof CamposTexto, valor: number | null): string | 
 
 export default function PanelForm({ onSubmit, loading, onValidationChange }: Props) {
   const [campos, setCampos] = useState<CamposTexto>(CAMPOS_VACIOS);
+  const [moduloYoungFactor, setModuloYoungFactor] = useState<number>(PREFIJO_POR_DEFECTO.factor);
   const [materiales, setMateriales] = useState<Material[]>([]);
   const [materialSeleccionado, setMaterialSeleccionado] = useState<Material | null>(null);
   const [dimensionesAbiertas, setDimensionesAbiertas] = useState(false);
@@ -82,28 +85,37 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
     setMaterialSeleccionado(null); // editar a mano desvincula el material elegido
   }
 
+  function actualizarPrefijoModuloYoung(factor: number) {
+    setModuloYoungFactor(factor);
+    setMaterialSeleccionado(null);
+  }
+
   function elegirMaterial(m: Material) {
     setMaterialSeleccionado(m);
+    const prefijo = mejorPrefijo(m.modulo_young_Pa);
+    setModuloYoungFactor(prefijo.factor);
     setCampos((prev) => ({
       ...prev,
       densidad: String(m.densidad_kg_m3),
-      modulo_young: String(m.modulo_young_Pa),
+      modulo_young: formatMantisa(m.modulo_young_Pa, prefijo.factor),
       poisson: String(m.modulo_poisson),
       factor_perdidas: String(m.factor_perdidas),
     }));
   }
 
+  const moduloYoungMantisa = aNumero(campos.modulo_young);
+
   const valores = useMemo(
     () => ({
       espesor: aNumero(campos.espesor),
       densidad: aNumero(campos.densidad),
-      modulo_young: aNumero(campos.modulo_young),
+      modulo_young: moduloYoungMantisa === null ? null : moduloYoungMantisa * moduloYoungFactor,
       poisson: aNumero(campos.poisson),
       factor_perdidas: aNumero(campos.factor_perdidas),
       lx: aNumero(campos.lx),
       ly: aNumero(campos.ly),
     }),
-    [campos]
+    [campos, moduloYoungMantisa, moduloYoungFactor]
   );
 
   const errores = useMemo(
@@ -217,15 +229,30 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
       <div className="field">
         <div className="field__row">
           <span className="field__label">Módulo de Young</span>
-          <span className="field__unit">Pa</span>
+          <span className="field__unit">
+            {PREFIJOS.find((p) => p.factor === moduloYoungFactor)?.simbolo}Pa
+          </span>
         </div>
-        <input
-          className={`field__input${errores.modulo_young ? " field__input--error" : ""}`}
-          type="text"
-          inputMode="decimal"
-          value={campos.modulo_young}
-          onChange={(e) => actualizarCampo("modulo_young", e.target.value)}
-        />
+        <div className="field__row-inline">
+          <input
+            className={`field__input${errores.modulo_young ? " field__input--error" : ""}`}
+            type="text"
+            inputMode="decimal"
+            value={campos.modulo_young}
+            onChange={(e) => actualizarCampo("modulo_young", e.target.value)}
+          />
+          <select
+            className="field__select"
+            value={moduloYoungFactor}
+            onChange={(e) => actualizarPrefijoModuloYoung(Number(e.target.value))}
+          >
+            {PREFIJOS.map((p) => (
+              <option key={p.nombre} value={p.factor}>
+                {p.nombre} ({p.simbolo || "—"})
+              </option>
+            ))}
+          </select>
+        </div>
         {errores.modulo_young && <div className="field__error">▲ {errores.modulo_young}</div>}
       </div>
 

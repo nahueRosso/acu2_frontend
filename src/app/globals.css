@@ -235,6 +235,32 @@ button {
   gap: 10px;
 }
 
+.field__row-inline {
+  display: flex;
+  gap: 8px;
+}
+
+.field__row-inline .field__input {
+  flex: 1;
+  min-width: 0;
+}
+
+.field__select {
+  flex: none;
+  width: 112px;
+  padding: 8px 8px;
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.field__select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .field__error {
   margin-top: 4px;
   font-size: 11px;
@@ -592,6 +618,36 @@ button {
   max-height: 340px;
   overflow: auto;
   border: 1px solid var(--line);
+}
+
+/* Scroll moderno (mismo tono que la página, no la barra gris del SO) */
+.table-scroll,
+.material-select__list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.table-scroll::-webkit-scrollbar,
+.material-select__list::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.table-scroll::-webkit-scrollbar-track,
+.material-select__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-scroll::-webkit-scrollbar-thumb,
+.material-select__list::-webkit-scrollbar-thumb {
+  background-color: var(--line);
+  border: 2px solid var(--panel);
+  border-radius: 999px;
+}
+
+.table-scroll::-webkit-scrollbar-thumb:hover,
+.material-select__list::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted);
 }
 
 table.results-table {
