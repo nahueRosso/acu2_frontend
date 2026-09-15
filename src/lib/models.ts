@@ -23,5 +23,5 @@ export const MODELOS: ModeloMeta[] = [
   },
   { key: "sharp", label: "Sharp", color: "#d79a43", strokeWidth: 2.6, implementado: true },
   { key: "davy", label: "Davy", color: "#b07ac4", strokeWidth: 2.2, implementado: true },
-  { key: "iso12354", label: "ISO 12354-1", color: "#5fa87e", strokeWidth: 2.2, implementado: false },
+  { key: "iso12354", label: "ISO 12354-1", color: "#5fa87e", strokeWidth: 2.2, implementado: true },
 ];

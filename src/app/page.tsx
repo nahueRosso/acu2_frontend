@@ -75,14 +75,14 @@ export default function Home() {
   // indicar "entrada inválida" y el gráfico se reemplaza en el momento).
   const estadoMostrado: Estado = formInvalido ? "error" : estado;
 
-  // Davy está implementado pero necesita Lx/Ly para calcular la eficiencia
-  // de radiación; si faltan, el backend devuelve null para ese modelo y sin
-  // este aviso parecería "roto" en vez de "falta un dato opcional".
-  const davyRequiereDimensiones =
-    estadoMostrado === "con-datos" &&
-    datos !== null &&
-    datos.resultados.davy === null &&
-    (datos.entrada.lx == null || datos.entrada.ly == null);
+  // Davy e ISO 12354-1 están implementados pero necesitan Lx/Ly (eficiencia
+  // de radiación); si faltan, el backend devuelve null para esos modelos y
+  // sin este aviso parecería que están "rotos" en vez de "falta un dato".
+  const faltanDimensiones = datos !== null && (datos.entrada.lx == null || datos.entrada.ly == null);
+  const modelosSinCurvaPorDimensiones =
+    estadoMostrado === "con-datos" && datos !== null && faltanDimensiones
+      ? MODELOS.filter((m) => (m.key === "davy" || m.key === "iso12354") && datos.resultados[m.key] === null)
+      : [];
 
   return (
     <>
@@ -152,10 +152,11 @@ export default function Home() {
 
             <Legend visibles={visibles} onToggle={toggleVisible} />
 
-            {davyRequiereDimensiones && (
+            {modelosSinCurvaPorDimensiones.length > 0 && (
               <p className="field__unit" style={{ marginTop: 8 }}>
-                ▲ Davy no tiene curva porque faltan las dimensiones del panel — completá{" "}
-                <strong style={{ color: "var(--ink)" }}>Lx</strong> y{" "}
+                ▲ {modelosSinCurvaPorDimensiones.map((m) => m.label).join(" y ")} no{" "}
+                {modelosSinCurvaPorDimensiones.length > 1 ? "tienen curva" : "tiene curva"} porque faltan las
+                dimensiones del panel — completá <strong style={{ color: "var(--ink)" }}>Lx</strong> y{" "}
                 <strong style={{ color: "var(--ink)" }}>Ly</strong> en &quot;Dimensiones del panel&quot; y
                 volvé a calcular.
               </p>
