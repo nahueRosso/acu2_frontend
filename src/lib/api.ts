@@ -25,13 +25,14 @@ export interface CalculoResponse {
   entrada: PanelInput;
 }
 
-export const NOMBRES_MODELOS: Record<keyof ResultadosModelos, string> = {
-  ley_de_masas: "Ley de masas",
-  ley_de_masas_corregida: "Ley de masas corregida",
-  sharp: "Sharp",
-  iso12354: "ISO 12354-1",
-  davy: "Davy",
-};
+export interface Material {
+  id: number;
+  material: string;
+  densidad_kg_m3: number;
+  modulo_young_Pa: number;
+  factor_perdidas: number;
+  modulo_poisson: number;
+}
 
 async function extraerError(res: Response): Promise<string> {
   try {
@@ -67,4 +68,12 @@ export async function exportarExcel(panel: PanelInput): Promise<Blob> {
     throw new Error(await extraerError(res));
   }
   return res.blob();
+}
+
+export async function fetchMateriales(): Promise<Material[]> {
+  const res = await fetch(`${API_URL}/materiales`);
+  if (!res.ok) {
+    throw new Error(await extraerError(res));
+  }
+  return res.json();
 }

@@ -1,42 +1,62 @@
 "use client";
 
-import type { CalculoResponse, ResultadosModelos } from "@/lib/api";
-import { NOMBRES_MODELOS } from "@/lib/api";
+import { useState } from "react";
+import type { ResultadosModelos } from "@/lib/api";
+import { formatDb, formatFreqFull } from "@/lib/format";
+import { MODELOS } from "@/lib/models";
 
 interface Props {
-  datos: CalculoResponse;
+  frecuencias: number[];
+  resultados: ResultadosModelos;
 }
 
-export default function ResultsTable({ datos }: Props) {
-  const claves = Object.keys(datos.resultados) as (keyof ResultadosModelos)[];
-  const disponibles = claves.filter((clave) => datos.resultados[clave] !== null);
+export default function ResultsTable({ frecuencias, resultados }: Props) {
+  const [abierta, setAbierta] = useState(true);
 
   return (
-    <div className="overflow-x-auto max-h-96 border rounded">
-      <table className="min-w-full text-sm">
-        <thead className="sticky top-0 bg-gray-100 dark:bg-gray-800">
-          <tr>
-            <th className="px-3 py-2 text-left">Frecuencia (Hz)</th>
-            {disponibles.map((clave) => (
-              <th key={clave} className="px-3 py-2 text-right">
-                {NOMBRES_MODELOS[clave]}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {datos.frecuencias.map((f, i) => (
-            <tr key={f} className="border-t">
-              <td className="px-3 py-1">{f}</td>
-              {disponibles.map((clave) => (
-                <td key={clave} className="px-3 py-1 text-right">
-                  {datos.resultados[clave]![i].toFixed(2)}
-                </td>
+    <div className="table-wrap">
+      <div className="section-heading">
+        <button
+          type="button"
+          className="collapsible__trigger"
+          style={{ width: "auto" }}
+          onClick={() => setAbierta((v) => !v)}
+        >
+          <span className={`collapsible__caret${abierta ? " collapsible__caret--open" : ""}`}>▶</span>
+          03 · Tabla de valores
+        </button>
+        <span className="section-heading__right">dB</span>
+      </div>
+
+      {abierta && (
+        <div className="table-scroll">
+          <table className="results-table">
+            <thead>
+              <tr>
+                <th>f (Hz)</th>
+                {MODELOS.map((m) => (
+                  <th key={m.key}>{m.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {frecuencias.map((f, i) => (
+                <tr key={f}>
+                  <td>{formatFreqFull(f)}</td>
+                  {MODELOS.map((m) => {
+                    const valores = resultados[m.key];
+                    return (
+                      <td key={m.key} className={valores ? undefined : "td--muted"}>
+                        {valores ? formatDb(valores[i]) : "—"}
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
