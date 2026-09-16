@@ -80,9 +80,21 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
       .catch(() => setMateriales([]));
   }, []);
 
-  function actualizarCampo(campo: keyof CamposTexto, valor: string) {
+  // Espesor, Lx y Ly son propiedades del panel (geometría de la instancia),
+  // no del material — cambiarlos no debería desvincular el material elegido.
+  function actualizarCampoPanel(campo: "espesor" | "lx" | "ly", valor: string) {
     setCampos((prev) => ({ ...prev, [campo]: valor }));
-    setMaterialSeleccionado(null); // editar a mano desvincula el material elegido
+  }
+
+  // Densidad, Young, Poisson y pérdidas sí son propiedades intrínsecas del
+  // material tabulado: si el usuario las toca a mano, dejan de coincidir con
+  // lo que dice la base de datos, así que el selector pasa a "Carga manual".
+  function actualizarCampoMaterial(
+    campo: "densidad" | "modulo_young" | "poisson" | "factor_perdidas",
+    valor: string
+  ) {
+    setCampos((prev) => ({ ...prev, [campo]: valor }));
+    setMaterialSeleccionado(null);
   }
 
   function actualizarPrefijoModuloYoung(factor: number) {
@@ -206,7 +218,7 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
           type="text"
           inputMode="decimal"
           value={campos.espesor}
-          onChange={(e) => actualizarCampo("espesor", e.target.value)}
+          onChange={(e) => actualizarCampoPanel("espesor", e.target.value)}
         />
         {errores.espesor && <div className="field__error">▲ {errores.espesor}</div>}
       </div>
@@ -221,7 +233,7 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
           type="text"
           inputMode="decimal"
           value={campos.densidad}
-          onChange={(e) => actualizarCampo("densidad", e.target.value)}
+          onChange={(e) => actualizarCampoMaterial("densidad", e.target.value)}
         />
         {errores.densidad && <div className="field__error">▲ {errores.densidad}</div>}
       </div>
@@ -239,7 +251,7 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
             type="text"
             inputMode="decimal"
             value={campos.modulo_young}
-            onChange={(e) => actualizarCampo("modulo_young", e.target.value)}
+            onChange={(e) => actualizarCampoMaterial("modulo_young", e.target.value)}
           />
           <select
             className="field__select"
@@ -268,7 +280,7 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
               type="text"
               inputMode="decimal"
               value={campos.poisson}
-              onChange={(e) => actualizarCampo("poisson", e.target.value)}
+              onChange={(e) => actualizarCampoMaterial("poisson", e.target.value)}
             />
           </div>
           <div>
@@ -281,7 +293,7 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
               type="text"
               inputMode="decimal"
               value={campos.factor_perdidas}
-              onChange={(e) => actualizarCampo("factor_perdidas", e.target.value)}
+              onChange={(e) => actualizarCampoMaterial("factor_perdidas", e.target.value)}
             />
           </div>
         </div>
@@ -314,7 +326,7 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
                   type="text"
                   inputMode="decimal"
                   value={campos.lx}
-                  onChange={(e) => actualizarCampo("lx", e.target.value)}
+                  onChange={(e) => actualizarCampoPanel("lx", e.target.value)}
                 />
               </div>
               <div>
@@ -327,7 +339,7 @@ export default function PanelForm({ onSubmit, loading, onValidationChange }: Pro
                   type="text"
                   inputMode="decimal"
                   value={campos.ly}
-                  onChange={(e) => actualizarCampo("ly", e.target.value)}
+                  onChange={(e) => actualizarCampoPanel("ly", e.target.value)}
                 />
               </div>
             </div>
